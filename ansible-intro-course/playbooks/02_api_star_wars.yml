@@ -1,0 +1,32 @@
+---
+- name: Intro API Playbook (Star Wars)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    swapi_person_id: 1
+
+  tasks:
+    - name: Fetch character from SWAPI
+      ansible.builtin.uri:
+        url: "https://swapi.py4e.com/api/people/{{ swapi_person_id }}/"
+        method: GET
+        return_content: true
+        status_code: 200
+      register: swapi_response
+
+    - name: Parse useful fields from API response
+      ansible.builtin.set_fact:
+        character_name: "{{ swapi_response.json.name }}"
+        character_birth_year: "{{ swapi_response.json.birth_year }}"
+        character_height_cm: "{{ swapi_response.json.height }}"
+        character_film_count: "{{ swapi_response.json.films | length }}"
+
+    - name: Show parsed character data
+      ansible.builtin.debug:
+        msg:
+          - "Character: {{ character_name }}"
+          - "Birth year: {{ character_birth_year }}"
+          - "Height (cm): {{ character_height_cm }}"
+          - "Film count: {{ character_film_count }}"

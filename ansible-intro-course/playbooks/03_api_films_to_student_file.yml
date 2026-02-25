@@ -1,0 +1,46 @@
+---
+- name: API to Student File Playbook (Star Wars Films)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+
+  vars:
+    swapi_person_id: 1
+
+  tasks:
+    - name: Fetch character from SWAPI
+      ansible.builtin.uri:
+        url: "https://swapi.py4e.com/api/people/{{ swapi_person_id }}/"
+        method: GET
+        return_content: true
+        status_code: 200
+      register: swapi_character
+
+    - name: Fetch each film from SWAPI
+      ansible.builtin.uri:
+        url: "{{ item }}"
+        method: GET
+        return_content: true
+        status_code: 200
+      loop: "{{ swapi_character.json.films }}"
+      register: swapi_films
+
+    - name: Build list of film titles
+      ansible.builtin.set_fact:
+        film_titles: "{{ swapi_films.results | map(attribute='json.title') | list }}"
+
+    - name: Write film titles to student note file
+      ansible.builtin.copy:
+        dest: "{{ note_file_path }}"
+        mode: "0644"
+        content: |
+          Star Wars films for {{ swapi_character.json.name }}:
+          {% for title in film_titles %}
+          - {{ title }}
+          {% endfor %}
+
+    - name: Show where the file was written
+      ansible.builtin.debug:
+        msg: "Wrote {{ film_titles | length }} film title(s) to {{ note_file_path }}"

@@ -1,0 +1,22 @@
+---
+- name: Intro Ansible Playbook
+  hosts: all
+  gather_facts: true
+  vars_files:
+    - ../group_vars/all.yml
+
+  tasks:
+    - name: Verify host is reachable
+      ansible.builtin.ping:
+
+    - name: Create note file on managed node
+      ansible.builtin.copy:
+        dest: "{{ note_file_path }}"
+        content: |
+          Intro to Ansible lab file.
+          Host: {{ inventory_hostname }}
+        mode: "0644"
+
+    - name: Show course message
+      ansible.builtin.debug:
+        msg: "{{ course_message }}"

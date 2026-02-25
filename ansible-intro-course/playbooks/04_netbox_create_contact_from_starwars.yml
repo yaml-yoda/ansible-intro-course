@@ -1,0 +1,64 @@
+---
+- name: Create NetBox contact from Star Wars character
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # Override with: -e "sw_character=Leia Organa"
+    sw_character: "Luke Skywalker"
+    swapi_base_url: "https://swapi.py4e.com/api"
+    netbox_api_url: "https://demo.netbox.dev/api"
+    netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+
+  tasks:
+    - name: Validate required NetBox token
+      ansible.builtin.assert:
+        that:
+          - netbox_token | length > 0
+        fail_msg: "Set NETBOX_TOKEN before running this playbook."
+
+    - name: Fetch character from SWAPI by name
+      ansible.builtin.uri:
+        url: "{{ swapi_base_url }}/people/?search={{ sw_character | urlencode }}"
+        method: GET
+        return_content: true
+        status_code: 200
+      register: swapi_search
+
+    - name: Ensure at least one character matched the input
+      ansible.builtin.assert:
+        that:
+          - swapi_search.json.count | int > 0
+        fail_msg: "No Star Wars character found for input: {{ sw_character }}"
+
+    - name: Select first matched character
+      ansible.builtin.set_fact:
+        selected_character: "{{ swapi_search.json.results[0] }}"
+
+    - name: Create contact in NetBox
+      ansible.builtin.uri:
+        url: "{{ netbox_api_url }}/tenancy/contacts/"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ netbox_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ selected_character.name }}"
+          title: "Star Wars Character"
+          comments: >-
+            Created by Ansible demo. Height={{ selected_character.height }},
+            Birth year={{ selected_character.birth_year }}
+        status_code: 201
+        return_content: true
+      register: netbox_contact_create
+      changed_when: netbox_contact_create.status == 201
+      no_log: true
+
+    - name: Show created contact summary
+      ansible.builtin.debug:
+        msg:
+          - "Input character: {{ sw_character }}"
+          - "Created NetBox contact: {{ selected_character.name }}"
+          - "NetBox contact id: {{ netbox_contact_create.json.id }}"
