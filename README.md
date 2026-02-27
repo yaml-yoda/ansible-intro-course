@@ -114,6 +114,14 @@ What this playbook does:
 
 ## 7) Run the fourth playbook (input var + create in NetBox)
 
+Before running this step on the public demo:
+
+1. Create a demo user with a random username and password.
+2. Click your username in the top-right menu.
+3. Go to `API Keys` and click `Generate`.
+4. Select token **v1**.
+5. Copy the token value before clicking `Create` (you can only view it once).
+
 Set your NetBox token first:
 
 ```bash
