@@ -1,6 +1,14 @@
 # Intro to Ansible - Simple Project
 
-This project is a minimal starter for learning Ansible basics:
+This project walks you through basic Ansible commands and playbooks, then extends into API integrations.
+
+Learning flow:
+
+1. Start with inventory, ad-hoc commands, and a simple local playbook.
+2. Fetch data from a public Star Wars API and parse JSON results.
+3. Use a public NetBox demo instance with an API token to create objects from that data.
+
+This project is a minimal starter for learning:
 
 - inventory
 - ad-hoc command
@@ -9,6 +17,13 @@ This project is a minimal starter for learning Ansible basics:
 - idempotency
 - API calls and JSON parsing
 - passing input through variables (`vars` and `-e`)
+
+## Services Integrated
+
+- Star Wars API (SWAPI): [`https://swapi.py4e.com/api/`](https://swapi.py4e.com/api/)
+  - Public, no-auth API used to fetch character and film data for demos.
+- Public NetBox demo: [`https://demo.netbox.dev`](https://demo.netbox.dev)
+  - Used to practice NetBox API integration with token-based authentication and object creation.
 
 ## Prerequisites
 
@@ -155,6 +170,13 @@ What this playbook does:
 1. Takes `sw_character` as input (from `vars` default or `-e` override)
 2. Fetches the person from SWAPI
 3. Uses `netbox.netbox.netbox_contact` to ensure the contact exists in NetBox
+4. Uses a deterministic email as the idempotent lookup key (avoids duplicate-name conflicts)
+
+Troubleshooting (show full module logs):
+
+```bash
+ansible-playbook playbooks/05_netbox_module_contact_from_starwars.yml -e debug_module_output=true
+```
 
 ## Suggested Exercises
 

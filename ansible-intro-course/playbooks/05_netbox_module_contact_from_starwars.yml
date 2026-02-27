@@ -10,6 +10,9 @@
     swapi_base_url: "https://swapi.py4e.com/api"
     netbox_url: "https://demo.netbox.dev"
     netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+    # Set to true only while troubleshooting:
+    # -e debug_module_output=true
+    debug_module_output: false
 
   tasks:
     - name: Validate required NetBox token
@@ -36,24 +39,33 @@
       ansible.builtin.set_fact:
         selected_character: "{{ swapi_search.json.results[0] }}"
 
+    - name: Build deterministic contact email for idempotent lookup
+      ansible.builtin.set_fact:
+        contact_email: >-
+          {{ selected_character.name | lower | regex_replace('[^a-z0-9]+', '.') | regex_replace('(^\\.|\\.$)', '') }}@swapi.demo.local
+
     - name: Ensure contact exists in NetBox using collection module
       netbox.netbox.netbox_contact:
         netbox_url: "{{ netbox_url }}"
         netbox_token: "{{ netbox_token }}"
+        query_params:
+          - email
         data:
           name: "{{ selected_character.name }}"
           title: "Star Wars Character"
+          email: "{{ contact_email }}"
           comments: >-
             Created by Ansible demo via netbox.netbox module.
             Height={{ selected_character.height }},
             Birth year={{ selected_character.birth_year }}
         state: present
       register: netbox_contact_result
-      no_log: true
+      no_log: "{{ not debug_module_output }}"
 
     - name: Show module result summary
       ansible.builtin.debug:
         msg:
           - "Input character: {{ sw_character }}"
           - "Contact name in NetBox: {{ selected_character.name }}"
+          - "Contact email key: {{ contact_email }}"
           - "Changed: {{ netbox_contact_result.changed }}"
