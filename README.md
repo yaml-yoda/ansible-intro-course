@@ -33,7 +33,8 @@ This project is a minimal starter for learning:
 ## Project Structure
 
 ```text
-ansible-intro-course/
+.
+├── README.md
 ├── ansible.cfg
 ├── requirements.yml
 ├── group_vars/
@@ -54,7 +55,6 @@ ansible-intro-course/
 From this folder:
 
 ```bash
-cd ansible-intro-course
 ansible --version
 ```
 
@@ -183,3 +183,9 @@ ansible-playbook playbooks/05_netbox_module_contact_from_starwars.yml -e debug_m
 1. Change `course_message` in `group_vars/all.yml`.
 2. In `02_api_star_wars.yml`, change `swapi_person_id` from `1` to `5` and compare output.
 3. Add one more parsed field (for example `eye_color` or `mass`) and print it.
+
+## Final Note (NetBox Demo)
+
+The public demo NetBox is currently running version `v4.5.3`.
+
+There is a known issue with token handling in this demo version, so when creating an API key, generate a **v1 token** (not v2).
